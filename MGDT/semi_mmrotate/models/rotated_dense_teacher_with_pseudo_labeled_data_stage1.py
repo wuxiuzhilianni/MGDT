@@ -1,0 +1,182 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# @Time : 2022/9/18 17:03
+# @Author : WeiHua
+import torch
+import numpy as np
+from .rotated_sparse_detector import RotatedSparseDetector
+from mmrotate.models.builder import ROTATED_DETECTORS
+from mmrotate.models import build_detector
+import os
+
+
+@ROTATED_DETECTORS.register_module()
+class RotatedDenseTeacherWithPseudoLabeledData3Branch2Stage(RotatedSparseDetector):
+    def __init__(self, model: dict, semi_loss_unsup, semi_loss_sup, train_cfg=None, test_cfg=None, symmetry_aware=False):
+        super(RotatedDenseTeacherWithPseudoLabeledData3Branch2Stage, self).__init__(
+            dict(teacher=build_detector(model), student=build_detector(model)),
+            semi_loss_unsup,
+            semi_loss_sup,
+            train_cfg=train_cfg,
+            test_cfg=test_cfg,
+        )
+        if train_cfg is not None:
+            self.freeze("teacher")
+            # ugly manner to get start iteration, to fit resume mode
+            self.iter_count = train_cfg.get("iter_count", 0)
+            # Prepare semi-training config
+            # step to start training student (not include EMA update)
+            self.burn_in_steps = train_cfg.get("burn_in_steps", 5000)
+            # prepare super & un-super weight
+            self.sup_weight = train_cfg.get("sup_weight", 1.0)
+            self.unsup_weight = train_cfg.get("unsup_weight", 1.0)
+            self.weight_suppress = train_cfg.get("weight_suppress", "linear")
+            self.logit_specific_weights = train_cfg.get("logit_specific_weights")
+            self.region_ratio = train_cfg.get("region_ratio")
+            self.weight_save_path = train_cfg.get("weight_save_path", "./weights")
+            self.weight_load_path = train_cfg.get("weight_load_path", None)       
+
+        self.symmetry_aware = symmetry_aware
+        # 如果存在权重路径，直接加载权重并跳过 burn-in 阶段
+        if self.weight_load_path:
+            self._load_weights(self.weight_load_path)
+            self.iter_count = self.burn_in_steps
+
+    # Stage1 中仅使用 labeled data pretrain ST Model
+    def forward_train(self, imgs, img_metas, **kwargs):
+        super(RotatedDenseTeacherWithPseudoLabeledData3Branch2Stage, self).forward_train(imgs, img_metas, **kwargs)
+        gt_bboxes = kwargs.get('gt_bboxes')
+        gt_labels = kwargs.get('gt_labels')
+        # preprocess
+        format_data = dict()
+        for idx, img_meta in enumerate(img_metas):
+            tag = img_meta['tag']
+            if tag in ['sup_strong', 'sup_weak']:
+                tag = 'sup'
+            if tag not in format_data.keys():
+                format_data[tag] = dict()
+                format_data[tag]['img'] = [imgs[idx]]
+                format_data[tag]['img_metas'] = [img_metas[idx]]
+                format_data[tag]['gt_bboxes'] = [gt_bboxes[idx]]
+                format_data[tag]['gt_labels'] = [gt_labels[idx]]
+            else:
+                format_data[tag]['img'].append(imgs[idx])
+                format_data[tag]['img_metas'].append(img_metas[idx])
+                format_data[tag]['gt_bboxes'].append(gt_bboxes[idx])
+                format_data[tag]['gt_labels'].append(gt_labels[idx])
+        for key in format_data.keys():
+            format_data[key]['img'] = torch.stack(format_data[key]['img'], dim=0)
+            # print(f"{key}: {format_data[key]['img'].shape}")
+        losses = dict()
+
+        # 使用 labeled data 对 s-t 进行pretrain
+        if self.iter_count < self.burn_in_steps:
+            sup_losses = self.student.forward_train(**format_data['sup'])
+
+            for key, val in sup_losses.items():
+                # if key[:4] == 'loss':
+                if 'loss' in key:
+                    if isinstance(val, list):
+                        losses[f"{key}_sup"] = [self.sup_weight * x for x in val]
+                    else:
+                        losses[f"{key}_sup"] = self.sup_weight * val
+                else:
+                    losses[key] = val
+        # 保存权重
+        if self.iter_count > 0 and self.iter_count % 9600 == 0:
+            self._save_weights()
+        # 使用 pretrain 完成后的 st model 为 labeled data 和 unlabeled data 生成伪标签
+        else:
+            unsup_weight = self.unsup_weight
+            if self.weight_suppress == 'exp':
+                target = self.burn_in_steps + 2000
+                if self.iter_count <= target:
+                    scale = np.exp((self.iter_count - target) / 1000)
+                    unsup_weight *= scale
+            elif self.weight_suppress == 'step':
+                target = self.burn_in_steps * 2
+                if self.iter_count <= target:
+                    unsup_weight *= 0.25
+            elif self.weight_suppress == 'linear':
+                target = self.burn_in_steps * 2
+                if self.iter_count <= target:
+                    unsup_weight *= (self.iter_count - self.burn_in_steps) / self.burn_in_steps
+
+            with torch.no_grad():
+                # get teacher data
+                teacher_logits_unlabled = self.teacher.forward_train(get_data=True, **format_data['unsup_weak_unlabeled'])
+                teacher_logits_labeled = self.teacher.forward_train(get_data=True, **format_data['unsup_weak_labeled'])
+            # get student data
+            student_logits_unlabeled = self.student.forward_train(get_data=True, **format_data['unsup_strong_unlabeled'])
+            student_logits_labeled = self.student.forward_train(get_data=True, **format_data['unsup_strong_labeled'])
+
+            unsup_losses_unlabeled = self.semi_loss_unsup(teacher_logits_unlabled, student_logits_unlabeled, ratio=self.region_ratio, img_metas=format_data['unsup_weak_unlabeled'])
+            unsup_losses_labeled = self.semi_loss_sup(teacher_logits_labeled, student_logits_labeled, ratio=self.region_ratio, img_metas=format_data['unsup_weak_labeled'], bbox_head=self.student.bbox_head)
+
+            for key, val in self.logit_specific_weights.items():
+                if key in unsup_losses_unlabeled.keys():
+                    unsup_losses_unlabeled[key] *= val
+            for key, val in unsup_losses_unlabeled.items():
+                # if key[:4] == 'loss':
+                if 'loss' in key:
+                    # losses[f"{key}_unsup"] = unsup_weight * val
+                    losses[f"{key}_unsup_unlabeled"] = val
+                else:
+                    losses[key] = val
+            
+            for key, val in self.logit_specific_weights.items():
+                if key in unsup_losses_labeled.keys():
+                    unsup_losses_labeled[key] *= val
+            for key, val in unsup_losses_labeled.items():
+                # if key[:4] == 'loss':
+                if 'loss' in key:
+                    # losses[f"{key}_unsup"] = unsup_weight * val
+                    losses[f"{key}_unsup_labeled"] = val
+                else:
+                    losses[key] = val
+
+        
+        self.iter_count += 1
+
+        return losses
+
+    def _save_weights(self):
+        # 检查存储路径是否存在，如果不存在则创建
+        if not os.path.exists(self.weight_save_path):
+            os.makedirs(self.weight_save_path)
+        torch.save(self.student.state_dict(), f"{self.weight_save_path}/student_iter_{self.iter_count}.pth")
+        torch.save(self.teacher.state_dict(), f"{self.weight_save_path}/teacher_iter_{self.iter_count}.pth")
+
+    def _load_weights(self, load_path):
+        student_path = f"{load_path}/student.pth"
+        teacher_path = f"{load_path}/teacher.pth"
+        self.student.load_state_dict(torch.load(student_path))
+        self.teacher.load_state_dict(torch.load(teacher_path))
+        print("weight load success")
+
+    def _load_from_state_dict(
+        self,
+        state_dict,
+        prefix,
+        local_metadata,
+        strict,
+        missing_keys,
+        unexpected_keys,
+        error_msgs,
+    ):
+        if not any(["student" in key or "teacher" in key for key in state_dict.keys()]):
+            keys = list(state_dict.keys())
+            state_dict.update({"teacher." + k: state_dict[k] for k in keys})
+            state_dict.update({"student." + k: state_dict[k] for k in keys})
+            for k in keys:
+                state_dict.pop(k)
+
+        return super()._load_from_state_dict(
+            state_dict,
+            prefix,
+            local_metadata,
+            strict,
+            missing_keys,
+            unexpected_keys,
+            error_msgs,
+        )

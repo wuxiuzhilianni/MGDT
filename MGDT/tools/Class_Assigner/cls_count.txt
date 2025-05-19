@@ -1,0 +1,34 @@
+plane: count=112192402, mean_prob=0.005566
+baseball-diamond: count=44783214, mean_prob=0.003911
+bridge: count=619844425, mean_prob=0.002444
+ground-track-field: count=12976181, mean_prob=0.008423
+small-vehicle: count=87773316, mean_prob=0.004959
+large-vehicle: count=27592813, mean_prob=0.010681
+ship: count=176801826, mean_prob=0.004444
+tennis-court: count=20409588, mean_prob=0.004184
+basketball-court: count=6897853, mean_prob=0.006222
+storage-tank: count=83466614, mean_prob=0.002672
+soccer-ball-field: count=114294767, mean_prob=0.002640
+roundabout: count=10036747, mean_prob=0.008272
+harbor: count=36483650, mean_prob=0.008245
+swimming-pool: count=15731532, mean_prob=0.005577
+helicopter: count=528780, mean_prob=0.024506
+
+
+
+Category: ground-track-field, Count: 711
+Category: storage-tank, Count: 898
+Category: ship, Count: 4239
+Category: harbor, Count: 1275
+Category: large-vehicle, Count: 2281
+Category: plane, Count: 1111
+Category: soccer-ball-field, Count: 502
+Category: small-vehicle, Count: 3113
+Category: bridge, Count: 610
+Category: roundabout, Count: 468
+Category: baseball-diamond, Count: 375
+Category: basketball-court, Count: 282
+Category: tennis-court, Count: 777
+Category: swimming-pool, Count: 468
+Category: helicopter, Count: 123
+Total annotations: 17233
