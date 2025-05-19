@@ -1,0 +1,23 @@
+Overall correct:     9797
+Overall incorrect:   25780
+Overall Total:       35577
+Overall Acc:         0.28
+
+Accuracy per category:
+Category             Correct    Incorrect  Total      Acc       
+----------------------------------------------------------------
+car                  3147       13094      16241      0.19      
+truck                253        2004       2257       0.11      
+bus                  43         1537       1580       0.03      
+trainer aircraft     26         472        498        0.05      
+helicopter           41         6          47         0.87      
+charted aircraft     0          499        499        0.00      
+propeller aircraft   1          161        162        0.01      
+van                  11         4698       4709       0.00      
+airliner             741        20         761        0.97      
+stair truck          10         331        341        0.03      
+long vehicle         1046       306        1352       0.77      
+boat                 4384       1901       6285       0.70      
+pushback truck       2          148        150        0.01      
+others               54         600        654        0.08      
+fighter aircraft     38         3          41         0.93   

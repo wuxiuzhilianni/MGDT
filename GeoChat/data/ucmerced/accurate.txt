@@ -1,0 +1,29 @@
+Overall correct:     1774
+Overall incorrect:   326
+Overall Total:       2100
+Overall Acc:         0.84
+
+Accuracy per category:
+Category             Correct    Incorrect  Total      Acc       
+----------------------------------------------------------------
+denseresidential     38         62         100        0.38      
+river                93         7          100        0.93      
+overpass             35         65         100        0.35      
+mediumresidential    89         11         100        0.89      
+tenniscourt          98         2          100        0.98      
+agricultural         59         41         100        0.59      
+intersection         96         4          100        0.96      
+buildings            95         5          100        0.95      
+freeway              100        0          100        1.00      
+runway               84         16         100        0.84      
+chaparral            99         1          100        0.99      
+storagetanks         93         7          100        0.93      
+parkinglot           100        0          100        1.00      
+sparseresidential    52         48         100        0.52      
+beach                99         1          100        0.99      
+forest               99         1          100        0.99      
+baseballdiamond      100        0          100        1.00      
+golfcourse           91         9          100        0.91      
+mobilehomepark       56         44         100        0.56      
+airplane             100        0          100        1.00      
+harbor               98         2          100        0.98  

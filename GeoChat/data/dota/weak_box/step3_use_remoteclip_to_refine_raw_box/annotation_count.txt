@@ -1,0 +1,18 @@
+bbox_after_clip 中 annotation 的数量为：
+
+Category: bridge, Count: 157
+Category: plane, Count: 5804
+Category: helicopter, Count: 119
+Category: tennis-court, Count: 528
+Category: basketball-court, Count: 185
+Category: ship, Count: 135
+Category: roundabout, Count: 188
+Category: harbor, Count: 151
+Category: swimming-pool, Count: 201
+Category: baseball-diamond, Count: 93
+Category: ground-track-field, Count: 36
+Category: large-vehicle, Count: 7
+Category: soccer-ball-field, Count: 12
+Category: storage-tank, Count: 1
+Category: small-vehicle, Count: 3
+Total annotations: 7620

@@ -1,0 +1,16 @@
+bbox_after_class_prompt 中 annotation 的数量为：
+
+Category: plane, Count: 5373
+Category: ship, Count: 80
+Category: harbor, Count: 150
+Category: tennis-court, Count: 405
+Category: basketball-court, Count: 111
+Category: swimming-pool, Count: 104
+Category: roundabout, Count: 46
+Category: baseball-diamond, Count: 73
+Category: ground-track-field, Count: 4
+Category: helicopter, Count: 39
+Category: bridge, Count: 59
+Category: large-vehicle, Count: 4
+Category: soccer-ball-field, Count: 10
+Total annotations: 6458

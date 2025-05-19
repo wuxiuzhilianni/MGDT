@@ -1,0 +1,6 @@
+clip-vit-large-patch14-336
+data
+demo_images
+geochat
+geochat_weights
+images

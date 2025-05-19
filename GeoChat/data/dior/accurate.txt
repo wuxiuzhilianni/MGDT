@@ -1,0 +1,86 @@
+GeoChat:1h30min
+Overall correct:     2541
+Overall incorrect:   3480
+Overall Total:       6021
+Overall Acc:         0.42
+
+Accuracy per ground truth category:
+Category                  Correct    Incorrect  Total      Acc       
+---------------------------------------------------------------------
+tenniscourt               303        110        413        0.73      
+baseballfield             163        43         206        0.79      
+vehicle                   384        893        1277       0.30      
+overpass                  52         23         75         0.69      
+windmill*                 133        1          134        0.99      
+golffield                 37         0          37         1.00      
+trainstation              49         1          50         0.98      
+bridge                    49         29         78         0.63      
+basketballcourt*          72         33         105        0.69      
+harbor                    177        8          185        0.96      
+ship                      462        2176       2638       0.18      
+airport*                  74         0          74         1.00      
+groundtrackfield*         71         20         91         0.78      
+chimney                   42         0          42         1.00      
+storagetank               142        70         212        0.67      
+airplane                  162        28         190        0.85      
+expressway-service-area   57         32         89         0.64      
+expressway-toll-station   35         7          42         0.83      
+stadium                   29         6          35         0.83      
+dam                       48         0          48         1.00      
+
+Accuracy per answer category:
+Category                  Correct    Incorrect  Total      Acc       
+---------------------------------------------------------------------
+tenniscourt               303        115        418        0.72      
+baseballfield             163        64         227        0.72      
+vehicle                   384        2          386        0.99      
+overpass                  52         89         141        0.37      
+windmill*                 133        0          133        1.00      
+golffield                 37         21         58         0.64      
+trainstation              49         106        155        0.32      
+basketballcourt*          72         55         127        0.57      
+harbor                    177        2211       2388       0.07      
+ship                      462        42         504        0.92      
+airport                   74         62         136        0.54      
+chimney                   42         50         92         0.46      
+groundtrackfield*         71         137        208        0.34      
+airplane*                 162        66         228        0.71      
+expressway-service-area   57         72         129        0.44      
+expressway-toll-station   35         251        286        0.12      
+bridge                    49         43         92         0.53      
+stadium                   29         16         45         0.64      
+parkinglot@               0          2          2          0.00      
+storagetank               142        32         174        0.82      
+storage tank@             0          31         31         0.00      
+swimming-pool@            0          1          1          0.00      
+train station@            0          3          3          0.00      
+dam                       48         7          55         0.87      
+intersection@             0          2          2          0.00    
+
+
+RemoteCLIP:10min
+Overall accuracy: 0.42 (2542 out of 6020)
+
+Accuracy per category:
+Category                  Correct    Total      Acc       
+------------------------------------------------------------
+basketballcourt*          52         105        0.50      
+storagetank               106        212        0.50      
+ship                      1745       2637       0.66      
+airplane*                 0          190        0.00      
+vehicle                   2          1277       0.00      
+harbor                    159        185        0.86      
+windmill*                 25         134        0.19      
+trainstation              2          50         0.04      
+tenniscourt               27         413        0.07      
+baseballfield             161        206        0.78      
+bridge                    28         78         0.36      
+Expressway-Service-area   23         89         0.26      
+Expressway-toll-station   2          42         0.05      
+overpass                  9          75         0.12      
+airport                   52         74         0.70      
+chimney                   16         42         0.38      
+stadium                   26         35         0.74      
+groundtrackfield*         72         91         0.79      
+dam                       4          48         0.08      
+golffield                 31         37         0.84   
